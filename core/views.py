@@ -19,6 +19,10 @@ from .models import (
 def is_admin(user):
     return user.is_authenticated and (user.is_superuser or user.role == 'admin')
 
+def is_compliance_user(user):
+    return user.is_authenticated and user.role in ['compliance_maker', 'compliance_checker']
+
+# Admin Views
 @login_required
 @user_passes_test(is_admin)
 def admin_dashboard(request):
@@ -138,6 +142,7 @@ def export_regulations(request):
     
     return response
 
+# Notification related views
 @login_required
 def get_notifications(request):
     notifications = Notification.objects.filter(recipient=request.user, read=False).order_by('-created_at')
@@ -162,3 +167,42 @@ def mark_notification_read(request, notification_id):
         notification.save()
         return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=400)
+
+# Compliance Portal Views
+def login_redirect_view(request):
+    """Redirect users based on their role after login."""
+    # If user is not authenticated, show login page
+    if not request.user.is_authenticated:
+        return redirect('login')
+        
+    # Log the login event
+    AuditLog.objects.create(
+        user=request.user,
+        action_type='login',
+        action_details=f"User {request.user.username} logged in",
+        ip_address=request.META.get('REMOTE_ADDR')
+    )
+    
+    # Redirect based on role
+    if request.user.is_superuser or request.user.role == 'admin':
+        return redirect('admin:index')
+    elif request.user.role in ['compliance_maker', 'compliance_checker']:
+        return redirect('compliance_dashboard')
+    else:
+        # For other roles, redirect to admin site
+        return redirect('admin:index')
+
+@login_required
+@user_passes_test(is_compliance_user)
+def compliance_dashboard(request):
+    """Dashboard view for compliance users (makers and checkers)."""
+    # Get the user's unread notifications
+    unread_notifications = Notification.objects.filter(recipient=request.user, read=False).order_by('-created_at')
+    
+    context = {
+        'unread_notifications': unread_notifications
+    }
+    
+    # Add more role-specific data here in the future
+    
+    return render(request, 'compliance/dashboard.html', context)

@@ -25,25 +25,28 @@ admin.site.site_header = 'Compliance Platform Administration'
 admin.site.site_title = 'Compliance Platform Admin'
 admin.site.index_title = 'Welcome to Compliance Platform'
 
-def redirect_to_admin(request):
-    return redirect('admin:index')
+# This function is no longer needed as we're using the login_redirect_view
+# def redirect_to_admin(request):
+#     return redirect('admin:index')
 
 urlpatterns = [
+    # Authentication URLs - must come before other routes
+    path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+    
+    # Admin URLs
     path('admin/', admin.site.urls),
-    path('', redirect_to_admin, name='home'),  # Redirect root to admin using a view
-    
-    # Custom admin dashboard
     path('admin/dashboard/', core_views.admin_dashboard, name='admin_dashboard'),
-    
-    # Export functionality
     path('admin/export/audit-logs/', core_views.export_audit_logs, name='export_audit_logs'),
     path('admin/export/regulations/', core_views.export_regulations, name='export_regulations'),
+    
+    # Compliance portal
+    path('compliance/', core_views.compliance_dashboard, name='compliance_dashboard'),
     
     # Notification endpoints
     path('get_notifications/', core_views.get_notifications, name='get_notifications'),
     path('mark_notification_read/<int:notification_id>/', core_views.mark_notification_read, name='mark_notification_read'),
     
-    # Authentication URLs
-    path('login/', auth_views.LoginView.as_view(), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    # Root URL - redirect based on role
+    path('', core_views.login_redirect_view, name='home'),
 ]

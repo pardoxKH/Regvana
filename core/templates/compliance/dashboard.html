@@ -1,0 +1,123 @@
+{% extends "compliance/base.html" %}
+
+{% block title %}Dashboard - Compliance Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>Welcome, {{ user.first_name|default:user.username }}</h2>
+            </div>
+            <div class="card-body">
+                <p class="lead">Welcome to the Compliance Portal. You are logged in as a <strong>{{ user.get_role_display }}</strong>.</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Your Profile</h4>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Username:</strong> {{ user.username }}</p>
+                                <p><strong>Email:</strong> {{ user.email }}</p>
+                                <p><strong>Role:</strong> {{ user.get_role_display }}</p>
+                                <p><strong>Departments:</strong> 
+                                    {% if user.departments.all %}
+                                        {% for dept in user.departments.all %}
+                                            {{ dept.name }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        None assigned
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        {% if user.role == 'compliance_maker' %}
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Compliance Maker Tools</h4>
+                            </div>
+                            <div class="card-body">
+                                <p>As a Compliance Maker, you can:</p>
+                                <ul>
+                                    <li>Create and manage regulations</li>
+                                    <li>Add articles to regulations</li>
+                                    <li>Assign regulations to departments</li>
+                                </ul>
+                                <a href="#" class="btn btn-primary">View Regulations</a>
+                            </div>
+                        </div>
+                        {% elif user.role == 'compliance_checker' %}
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Compliance Checker Tools</h4>
+                            </div>
+                            <div class="card-body">
+                                <p>As a Compliance Checker, you can:</p>
+                                <ul>
+                                    <li>Review regulations and their compliance status</li>
+                                    <li>Approve or reject compliance statuses</li>
+                                    <li>Generate compliance reports</li>
+                                </ul>
+                                <a href="#" class="btn btn-primary">View Compliance Reviews</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if unread_notifications %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3>Recent Notifications</h3>
+            </div>
+            <div class="card-body">
+                <div class="notifications-list">
+                    {% for notification in unread_notifications %}
+                    <div class="notification-item">
+                        <strong>{{ notification.title }}</strong> - {{ notification.created_at|date:"Y-m-d H:i" }}
+                        <div>{{ notification.message|truncatechars:100 }}</div>
+                        <button class="btn btn-sm btn-outline-primary mt-2 mark-read" data-id="{{ notification.id }}">Mark as Read</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extrascripts %}
+<script>
+    $(document).ready(function() {
+        $('.mark-read').click(function() {
+            const notificationId = $(this).data('id');
+            const item = $(this).closest('.notification-item');
+            
+            $.ajax({
+                url: `/mark_notification_read/${notificationId}/`,
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        item.fadeOut(300);
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 
