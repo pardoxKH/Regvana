@@ -40,7 +40,7 @@ env/
 .vscode/
 *.swp
 *.swo
-
+.env
 # OS specific
 .DS_Store
 .DS_Store?
