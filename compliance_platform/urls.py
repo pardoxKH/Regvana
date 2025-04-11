@@ -32,7 +32,7 @@ admin.site.index_title = 'Welcome to Compliance Platform'
 urlpatterns = [
     # Authentication URLs - must come before other routes
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='login', http_method_names=['post']), name='logout'),
     
     # Admin URLs
     path('admin/', admin.site.urls),
@@ -42,6 +42,11 @@ urlpatterns = [
     
     # Compliance portal
     path('compliance/', core_views.compliance_dashboard, name='compliance_dashboard'),
+    path('compliance/regulations/', core_views.compliance_regulations, name='compliance_regulations'),
+    path('compliance/regulations/<int:regulation_id>/', core_views.compliance_regulation_detail, name='compliance_regulation_detail'),
+    path('compliance/regulations/create/', core_views.create_regulation, name='create_regulation'),
+    path('compliance/regulations/<int:regulation_id>/edit/', core_views.edit_regulation, name='edit_regulation'),
+    path('compliance/regulations/<int:regulation_id>/delete/', core_views.delete_regulation, name='delete_regulation'),
     
     # Notification endpoints
     path('get_notifications/', core_views.get_notifications, name='get_notifications'),

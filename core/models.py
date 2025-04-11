@@ -29,36 +29,60 @@ class User(AbstractUser):
 class Regulation(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
-        ('pending', 'Pending'),
-        ('in_progress', 'In Progress'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
+        ('awaiting_compliance_review', 'Awaiting Compliance Review'),
+        ('reviewed_by_compliance', 'Reviewed by Compliance'),
+        ('action_required_from_department', 'Action Required from Department'),
+        ('department_response_submitted', 'Department Response Submitted'),
+        ('returned_for_department_rework', 'Returned for Department Rework'),
+        ('awaiting_final_compliance_approval', 'Awaiting Final Compliance Approval'),
+        ('fully_approved', 'Fully Approved'),
+    ]
+    
+    TYPE_CHOICES = [
+        ('regulation', 'Regulation'),
+        ('circular', 'Circular'),
+        ('guideline', 'Guideline'),
+        ('law', 'Law'),
+        ('other', 'Other'),
     ]
     
     name = models.CharField(max_length=200)
+    reference = models.CharField(max_length=50, unique=True, help_text="Unique reference number for the regulation", default='REG-2024-001')
     description = models.TextField()
     date_created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='draft')
+    type = models.CharField(max_length=50, choices=TYPE_CHOICES, default='regulation', help_text="Type of the document")
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_regulations')
     assigned_departments = models.ManyToManyField(Department, related_name='assigned_regulations')
+    issue_date = models.DateField(null=True, blank=True, help_text="Date when the regulation was issued")
+    effective_date = models.DateField(null=True, blank=True, help_text="Date when the regulation becomes effective")
+    expiry_date = models.DateField(null=True, blank=True, help_text="Date when the regulation expires")
     
     def __str__(self):
-        return self.name
+        return f"{self.reference} - {self.name}"
 
 class Article(models.Model):
+    TYPE_CHOICES = [
+        ('regulation', 'Regulation'),
+        ('rule', 'Rule'),
+        ('guideline', 'Guideline'),
+    ]
+    
     regulation = models.ForeignKey(Regulation, on_delete=models.CASCADE, related_name='articles')
     title = models.CharField(max_length=200)
     content = models.TextField()
-    order = models.PositiveIntegerField(default=1)
+    type = models.CharField(max_length=50, choices=TYPE_CHOICES, default='regulation')
+    reference = models.CharField(max_length=50, help_text="Reference number for the article", default='1')
     date_created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
     
     class Meta:
-        ordering = ['order']
+        ordering = ['reference']
+        unique_together = ['regulation', 'reference']
     
     def __str__(self):
-        return f"{self.regulation.name} - {self.title}"
+        return f"{self.regulation.reference}.{self.reference} - {self.title}"
 
 class ComplianceStatus(models.Model):
     STATUS_CHOICES = [

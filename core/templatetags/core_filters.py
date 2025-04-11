@@ -16,4 +16,9 @@ def multiply(value, arg):
     """
     Multiplies the value by the argument.
     """
-    return value * arg 
+    return value * arg
+
+@register.filter
+def split(value, arg):
+    """Split a string by the given argument."""
+    return value.split(arg) 

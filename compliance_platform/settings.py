@@ -139,3 +139,8 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
+
+# Elasticsearch Configuration
+ELASTICSEARCH_HOST = 'http://localhost:9200'
+ELASTICSEARCH_USERNAME = None  # Set if authentication is required
+ELASTICSEARCH_PASSWORD = None  # Set if authentication is required

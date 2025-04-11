@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Regulations</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'create_regulation' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> New Regulation
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="mb-3">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="id_name">Name</label>
+                                    <input type="text" name="name" id="id_name" class="form-control" value="{{ request.GET.name }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="id_status">Status</label>
+                                    <select name="status" id="id_status" class="form-control">
+                                        <option value="">All</option>
+                                        {% for value, label in status_choices %}
+                                            <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="id_created_by">Created By</label>
+                                    <select name="created_by" id="id_created_by" class="form-control">
+                                        <option value="">All</option>
+                                        {% for user in users %}
+                                            <option value="{{ user.id }}" {% if request.GET.created_by == user.id|stringformat:"i" %}selected{% endif %}>{{ user.get_full_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="id_issue_date">Issue Date</label>
+                                    <input type="date" name="issue_date" id="id_issue_date" class="form-control" value="{{ request.GET.issue_date }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="id_effective_date">Effective Date</label>
+                                    <input type="date" name="effective_date" id="id_effective_date" class="form-control" value="{{ request.GET.effective_date }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="id_expiry_date">Expiry Date</label>
+                                    <input type="date" name="expiry_date" id="id_expiry_date" class="form-control" value="{{ request.GET.expiry_date }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary form-control">Filter</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Created By</th>
+                                    <th>Issue Date</th>
+                                    <th>Effective Date</th>
+                                    <th>Expiry Date</th>
+                                    <th>Date Created</th>
+                                    <th>Last Updated</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for regulation in regulations %}
+                                <tr>
+                                    <td>{{ regulation.reference }}</td>
+                                    <td>{{ regulation.name }}</td>
+                                    <td>{{ regulation.get_status_display }}</td>
+                                    <td>{{ regulation.created_by.username }}</td>
+                                    <td>{{ regulation.issue_date|date:"Y-m-d" }}</td>
+                                    <td>{{ regulation.effective_date|date:"Y-m-d" }}</td>
+                                    <td>{{ regulation.expiry_date|date:"Y-m-d" }}</td>
+                                    <td>{{ regulation.date_created|date:"Y-m-d" }}</td>
+                                    <td>{{ regulation.last_updated|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <a href="{% url 'compliance_regulation_detail' regulation.id %}" class="btn btn-sm btn-primary">View</a>
+                                        {% if regulation.status == 'draft' %}
+                                        <a href="{% url 'edit_regulation' regulation.id %}" class="btn btn-sm btn-warning">Edit</a>
+                                        <a href="{% url 'delete_regulation' regulation.id %}" class="btn btn-sm btn-danger">Delete</a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="10" class="text-center">No regulations found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

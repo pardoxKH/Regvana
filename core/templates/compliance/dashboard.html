@@ -48,7 +48,7 @@
                                     <li>Add articles to regulations</li>
                                     <li>Assign regulations to departments</li>
                                 </ul>
-                                <a href="#" class="btn btn-primary">View Regulations</a>
+                                <a href="{% url 'compliance_regulations' %}" class="btn btn-primary">View Regulations</a>
                             </div>
                         </div>
                         {% elif user.role == 'compliance_checker' %}
