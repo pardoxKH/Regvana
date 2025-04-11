@@ -1,0 +1,308 @@
+{% extends "compliance/base.html" %}
+{% load static %}
+
+{% block title %}Create New Regulation{% endblock %}
+
+{% block extrastyle %}
+<style>
+    .side-panel {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        width: 250px;
+        height: calc(100vh - 56px);
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-right: 1px solid #dee2e6;
+        overflow-y: auto;
+    }
+    .main-content {
+        margin-left: 250px;
+        padding: 20px;
+    }
+    .nav-link {
+        color: #495057;
+        padding: 10px 15px;
+        border-radius: 4px;
+        margin-bottom: 5px;
+    }
+    .nav-link:hover {
+        background-color: #e9ecef;
+        color: #212529;
+    }
+    .nav-link.active {
+        background-color: #417690;
+        color: white;
+    }
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .article-form {
+        border: 1px solid #dee2e6;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+    .article-form h4 {
+        margin-bottom: 15px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .add-article-btn {
+        margin-bottom: 20px;
+    }
+    .help-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    .checkbox-list {
+        list-style: none;
+        padding-left: 0;
+    }
+    .checkbox-list li {
+        margin-bottom: 10px;
+    }
+    .checkbox-list input[type="checkbox"] {
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="side-panel">
+    <h4>Navigation</h4>
+    <nav class="nav flex-column">
+        <a class="nav-link" href="{% url 'compliance_regulations' %}">
+            All Regulations
+        </a>
+        <a class="nav-link active" href="{% url 'create_regulation' %}">
+            Create New Regulation
+        </a>
+    </nav>
+</div>
+
+<div class="main-content">
+    <div class="form-container">
+        <h2>Create New Regulation</h2>
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>Regulation Details</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="{{ form.name.id_for_label }}">Name</label>
+                        {{ form.name }}
+                        {% if form.name.help_text %}
+                        <small class="help-text">{{ form.name.help_text }}</small>
+                        {% endif %}
+                        {% if form.name.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.name.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.reference.id_for_label }}">Reference</label>
+                        {{ form.reference }}
+                        {% if form.reference.help_text %}
+                        <small class="help-text">{{ form.reference.help_text }}</small>
+                        {% endif %}
+                        {% if form.reference.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.reference.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.description.id_for_label }}">Description</label>
+                        {{ form.description }}
+                        {% if form.description.help_text %}
+                        <small class="help-text">{{ form.description.help_text }}</small>
+                        {% endif %}
+                        {% if form.description.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.description.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.type.id_for_label }}">Type</label>
+                        {{ form.type }}
+                        {% if form.type.help_text %}
+                        <small class="help-text">{{ form.type.help_text }}</small>
+                        {% endif %}
+                        {% if form.type.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.type.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.issue_date.id_for_label }}">Issue Date</label>
+                        {{ form.issue_date }}
+                        {% if form.issue_date.help_text %}
+                        <small class="help-text">{{ form.issue_date.help_text }}</small>
+                        {% endif %}
+                        {% if form.issue_date.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.issue_date.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.effective_date.id_for_label }}">Effective Date</label>
+                        {{ form.effective_date }}
+                        {% if form.effective_date.help_text %}
+                        <small class="help-text">{{ form.effective_date.help_text }}</small>
+                        {% endif %}
+                        {% if form.effective_date.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.effective_date.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.expiry_date.id_for_label }}">Expiry Date</label>
+                        {{ form.expiry_date }}
+                        {% if form.expiry_date.help_text %}
+                        <small class="help-text">{{ form.expiry_date.help_text }}</small>
+                        {% endif %}
+                        {% if form.expiry_date.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.expiry_date.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>Assigned Departments</label>
+                        {{ form.assigned_departments }}
+                        {% if form.assigned_departments.help_text %}
+                        <small class="help-text">{{ form.assigned_departments.help_text }}</small>
+                        {% endif %}
+                        {% if form.assigned_departments.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.assigned_departments.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>Articles (Optional)</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">You can add articles to this regulation now or add them later.</p>
+                    {{ formset.management_form }}
+                    <div id="article-forms">
+                        {% for form in formset %}
+                        <div class="article-form">
+                            <h4>Article {{ forloop.counter }}</h4>
+                            <div class="form-group">
+                                <label for="{{ form.title.id_for_label }}">Title</label>
+                                {{ form.title }}
+                                {% if form.title.errors %}
+                                    <div class="alert alert-danger">{{ form.title.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.content.id_for_label }}">Content</label>
+                                {{ form.content }}
+                                {% if form.content.errors %}
+                                    <div class="alert alert-danger">{{ form.content.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.type.id_for_label }}">Type</label>
+                                {{ form.type }}
+                                {% if form.type.errors %}
+                                    <div class="alert alert-danger">{{ form.type.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="{{ form.reference.id_for_label }}">Reference</label>
+                                {{ form.reference }}
+                                {% if form.reference.help_text %}
+                                <small class="help-text">{{ form.reference.help_text }}</small>
+                                {% endif %}
+                                {% if form.reference.errors %}
+                                <div class="alert alert-danger">{{ form.reference.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            {% if form.instance.pk %}
+                                {{ form.DELETE }}
+                                <label for="{{ form.DELETE.id_for_label }}">Delete this article</label>
+                            {% endif %}
+                            
+                            {% for hidden in form.hidden_fields %}
+                                {{ hidden }}
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <button type="button" class="btn btn-secondary add-article-btn" id="add-article">
+                        Add Another Article
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Create Regulation</button>
+                <a href="{% url 'compliance_regulations' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block extrajs %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addButton = document.getElementById('add-article');
+    const totalForms = document.getElementById('id_articles-TOTAL_FORMS');
+    const articleForms = document.getElementById('article-forms');
+    
+    addButton.addEventListener('click', function() {
+        const formCount = parseInt(totalForms.value);
+        const newForm = articleForms.children[0].cloneNode(true);
+        
+        // Update form index
+        const formRegex = RegExp(`articles-(\\d+)-`, 'g');
+        newForm.innerHTML = newForm.innerHTML.replace(formRegex, `articles-${formCount}-`);
+        
+        // Clear input values
+        newForm.querySelectorAll('input, textarea').forEach(input => {
+            if (input.type !== 'hidden') {
+                input.value = '';
+            }
+        });
+        
+        // Update article number
+        newForm.querySelector('h4').textContent = `Article ${formCount + 1}`;
+        
+        articleForms.appendChild(newForm);
+        totalForms.value = formCount + 1;
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

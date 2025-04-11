@@ -1,0 +1,318 @@
+{% extends "compliance/base.html" %}
+{% load core_filters %}
+
+{% block title %}Regulations - Compliance Portal{% endblock %}
+
+{% block extrastyle %}
+<style>
+    .side-panel {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        width: 250px;
+        height: calc(100vh - 56px);
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-right: 1px solid #dee2e6;
+        overflow-y: auto;
+    }
+    .main-content {
+        margin-left: 250px;
+        padding: 20px;
+    }
+    .nav-link {
+        color: #495057;
+        padding: 10px 15px;
+        border-radius: 4px;
+        margin-bottom: 5px;
+    }
+    .nav-link:hover {
+        background-color: #e9ecef;
+        color: #212529;
+    }
+    .nav-link.active {
+        background-color: #417690;
+        color: white;
+    }
+    .regulation-table {
+        width: 100%;
+        margin-top: 20px;
+    }
+    .regulation-table th {
+        background-color: #f8f9fa;
+    }
+    .regulation-detail {
+        background-color: white;
+        padding: 20px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .article-list {
+        margin-top: 20px;
+    }
+    .article-item {
+        padding: 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+    .article-item h4 {
+        margin-bottom: 10px;
+    }
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.8em;
+    }
+    .status-draft { background-color: #6c757d; color: white; }
+    .status-awaiting_compliance_review { background-color: #17a2b8; color: white; }
+    .status-reviewed_by_compliance { background-color: #007bff; color: white; }
+    .status-action_required_from_department { background-color: #ffc107; color: black; }
+    .status-department_response_submitted { background-color: #6f42c1; color: white; }
+    .status-returned_for_department_rework { background-color: #dc3545; color: white; }
+    .status-awaiting_final_compliance_approval { background-color: #fd7e14; color: white; }
+    .status-fully_approved { background-color: #28a745; color: white; }
+    .search-filters {
+        background-color: white;
+        padding: 20px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .search-filters .form-group {
+        margin-bottom: 15px;
+    }
+    .search-filters label {
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+    .search-filters .form-control {
+        border-radius: 4px;
+    }
+    .search-filters .btn {
+        margin-top: 25px;
+    }
+    .date-range {
+        display: flex;
+        gap: 10px;
+    }
+    .date-range .form-group {
+        flex: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="side-panel">
+    <h4>Navigation</h4>
+    <nav class="nav flex-column">
+        <a class="nav-link {% if not regulation %}active{% endif %}" href="{% url 'compliance_regulations' %}">
+            All Regulations
+        </a>
+        {% if user.role == 'compliance_maker' %}
+        <a class="nav-link" href="{% url 'create_regulation' %}">
+            Create New Regulation
+        </a>
+        {% endif %}
+    </nav>
+</div>
+
+<div class="main-content">
+    {% if regulation %}
+    <div class="regulation-detail">
+        <h2>{{ regulation.name }}</h2>
+        <p class="text-muted">Status: <span class="status-badge status-{{ regulation.status }}">{{ regulation.get_status_display }}</span></p>
+        <p class="text-muted">Created: {{ regulation.date_created|date:"Y-m-d" }}</p>
+        <p class="text-muted">Last Updated: {{ regulation.last_updated|date:"Y-m-d" }}</p>
+        <p class="text-muted">Created By: {{ regulation.created_by.username }}</p>
+        
+        <h3 class="mt-4">Description</h3>
+        <p>{{ regulation.description }}</p>
+        
+        <h3 class="mt-4">Assigned Departments</h3>
+        <ul>
+            {% for dept in regulation.assigned_departments.all %}
+            <li>{{ dept.name }}</li>
+            {% empty %}
+            <li>No departments assigned</li>
+            {% endfor %}
+        </ul>
+        
+        <h3 class="mt-4">Articles</h3>
+        <div class="article-list">
+            {% for article in regulation.articles.all %}
+            <div class="article-item">
+                <h4>{{ article.title }}</h4>
+                <p class="text-muted">Type: <span class="badge bg-info">{{ article.get_type_display }}</span></p>
+                <p>{{ article.content }}</p>
+                <small class="text-muted">Order: {{ article.order }}</small>
+            </div>
+            {% empty %}
+            <p>No articles found for this regulation.</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <h2>Regulations</h2>
+    
+    <div class="search-filters">
+        <form method="get" class="row">
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label for="reference">Reference</label>
+                    <input type="text" class="form-control" id="reference" name="reference" value="{{ reference_filter }}" 
+                           placeholder="Search by reference">
+                </div>
+            </div>
+            
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" class="form-control" id="title" name="title" value="{{ title_filter }}" 
+                           placeholder="Filter by title">
+                </div>
+            </div>
+            
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select class="form-control" id="status" name="status">
+                        <option value="">All Statuses</option>
+                        {% for status, display in status_choices %}
+                        <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>
+                            {{ display }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label for="created_by">Created By</label>
+                    <select class="form-control" id="created_by" name="created_by">
+                        <option value="">All Users</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}" {% if created_by_filter == user.id|stringformat:"i" %}selected{% endif %}>
+                            {% if user.get_full_name %}
+                                {{ user.get_full_name }}
+                            {% else %}
+                                {{ user.username }}
+                            {% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <select class="form-control" id="department" name="department">
+                        <option value="">All Departments</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}" {% if department_filter == dept.id|stringformat:"i" %}selected{% endif %}>
+                            {{ dept.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Issue Date Range</label>
+                    <div class="input-group">
+                        <input type="date" class="form-control" name="issue_date_from" value="{{ issue_date_from }}" 
+                               placeholder="From">
+                        <div class="input-group-prepend input-group-append">
+                            <span class="input-group-text">to</span>
+                        </div>
+                        <input type="date" class="form-control" name="issue_date_to" value="{{ issue_date_to }}" 
+                               placeholder="To">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Effective Date Range</label>
+                    <div class="input-group">
+                        <input type="date" class="form-control" name="effective_date_from" value="{{ effective_date_from }}" 
+                               placeholder="From">
+                        <div class="input-group-prepend input-group-append">
+                            <span class="input-group-text">to</span>
+                        </div>
+                        <input type="date" class="form-control" name="effective_date_to" value="{{ effective_date_to }}" 
+                               placeholder="To">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Expiry Date Range</label>
+                    <div class="input-group">
+                        <input type="date" class="form-control" name="expiry_date_from" value="{{ expiry_date_from }}" 
+                               placeholder="From">
+                        <div class="input-group-prepend input-group-append">
+                            <span class="input-group-text">to</span>
+                        </div>
+                        <input type="date" class="form-control" name="expiry_date_to" value="{{ expiry_date_to }}" 
+                               placeholder="To">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-12 text-right mt-3">
+                <button type="submit" class="btn btn-primary">Search</button>
+                <a href="{% url 'compliance_regulations' %}" class="btn btn-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+    
+    <table class="table regulation-table">
+        <thead>
+            <tr>
+                <th>Reference</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Created By</th>
+                <th>Issue Date</th>
+                <th>Effective Date</th>
+                <th>Expiry Date</th>
+                <th>Date Created</th>
+                <th>Last Updated</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for regulation in regulations %}
+            <tr>
+                <td>{{ regulation.reference }}</td>
+                <td>{{ regulation.name }}</td>
+                <td><span class="status-badge status-{{ regulation.status }}">{{ regulation.get_status_display }}</span></td>
+                <td>{{ regulation.created_by.username }}</td>
+                <td>{{ regulation.issue_date|date:"Y-m-d" }}</td>
+                <td>{{ regulation.effective_date|date:"Y-m-d" }}</td>
+                <td>{{ regulation.expiry_date|date:"Y-m-d" }}</td>
+                <td>{{ regulation.date_created|date:"Y-m-d" }}</td>
+                <td>{{ regulation.last_updated|date:"Y-m-d" }}</td>
+                <td>
+                    <a href="{% url 'compliance_regulation_detail' regulation.id %}" class="btn btn-sm btn-primary">View</a>
+                    {% if regulation.status == 'draft' %}
+                    <a href="{% url 'edit_regulation' regulation.id %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'delete_regulation' regulation.id %}" class="btn btn-sm btn-danger">Delete</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="10" class="text-center">No regulations found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+{% endblock %} 

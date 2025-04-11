@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Regulations{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Regulations</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createRegulationModal">
+                            <i class="fas fa-plus"></i> Create Regulation
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Search and Filters -->
+                    <form method="get" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="search">Search</label>
+                                    <input type="text" class="form-control" id="search" name="search" value="{{ search_query }}" placeholder="Search...">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="status">Status</label>
+                                    <select class="form-control" id="status" name="status">
+                                        <option value="">All Statuses</option>
+                                        {% for status, display in status_choices %}
+                                        <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>
+                                            {{ display }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="type">Type</label>
+                                    <select class="form-control" id="type" name="type">
+                                        <option value="">All Types</option>
+                                        <option value="regulation" {% if type_filter == 'regulation' %}selected{% endif %}>Regulation</option>
+                                        <option value="circular" {% if type_filter == 'circular' %}selected{% endif %}>Circular</option>
+                                        <option value="guideline" {% if type_filter == 'guideline' %}selected{% endif %}>Guideline</option>
+                                        <option value="law" {% if type_filter == 'law' %}selected{% endif %}>Law</option>
+                                        <option value="other" {% if type_filter == 'other' %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="department">Department</label>
+                                    <select class="form-control" id="department" name="department">
+                                        <option value="">All Departments</option>
+                                        {% for department in departments %}
+                                            <option value="{{ department.id }}" {% if department_filter == department.id|stringformat:"i" %}selected{% endif %}>
+                                                {{ department.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="reference">Reference</label>
+                                    <input type="text" class="form-control" id="reference" name="reference" value="{{ reference_filter }}" placeholder="Filter by reference">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="title">Title</label>
+                                    <input type="text" class="form-control" id="title" name="title" value="{{ title_filter }}" placeholder="Filter by title">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="created_by">Created By</label>
+                                    <select class="form-control" id="created_by" name="created_by">
+                                        <option value="">All Users</option>
+                                        {% for user in created_by_choices %}
+                                        <option value="{{ user.username }}" {% if created_by_filter == user.username %}selected{% endif %}>
+                                            {{ user.get_full_name|default:user.username }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary btn-block">Filter</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Regulations Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Departments</th>
+                                    <th>Created By</th>
+                                    <th>Date Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for regulation in regulations %}
+                                <tr>
+                                    <td>{{ regulation.reference }}</td>
+                                    <td>{{ regulation.name }}</td>
+                                    <td>{{ regulation.get_type_display }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ regulation.status|status_badge_class }}">
+                                            {{ regulation.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% for department in regulation.assigned_departments.all %}
+                                            <span class="badge badge-info">{{ department.name }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>{{ regulation.created_by }}</td>
+                                    <td>{{ regulation.date_created|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <a href="{% url 'regulation_detail' regulation.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        {% if regulation.status == 'draft' %}
+                                            <a href="{% url 'edit_regulation' regulation.id %}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <a href="{% url 'delete_regulation' regulation.id %}" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center">No regulations found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Regulation Modal -->
+<div class="modal fade" id="createRegulationModal" tabindex="-1" role="dialog" aria-labelledby="createRegulationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createRegulationModalLabel">Create New Regulation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="id_name">Name</label>
+                        <input type="text" class="form-control" id="id_name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_reference">Reference</label>
+                        <input type="text" class="form-control" id="id_reference" name="reference" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_description">Description</label>
+                        <textarea class="form-control" id="id_description" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_type">Type</label>
+                        <select class="form-control" id="id_type" name="type" required>
+                            <option value="">Select Type</option>
+                            <option value="regulation">Regulation</option>
+                            <option value="circular">Circular</option>
+                            <option value="guideline">Guideline</option>
+                            <option value="law">Law</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_assigned_departments">Assigned Departments</label>
+                        <div class="department-checkboxes">
+                            {% for department in departments %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="assigned_departments" value="{{ department.id }}" id="dept_{{ department.id }}">
+                                <label class="form-check-label" for="dept_{{ department.id }}">
+                                    {{ department.name }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Create Regulation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 
